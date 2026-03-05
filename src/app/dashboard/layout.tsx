@@ -19,6 +19,7 @@ export default function DashboardLayout({
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Auto-close sidebar on route change
     useEffect(() => {
@@ -61,8 +62,14 @@ export default function DashboardLayout({
     return (
         <div className="flex h-screen overflow-hidden bg-background">
             {/* Desktop Sidebar */}
-            <div className="hidden md:flex md:w-64 md:flex-col">
-                <Sidebar />
+            <div className={cn(
+                "hidden md:flex md:flex-col transition-all duration-300 ease-in-out",
+                isCollapsed ? "w-20" : "w-64"
+            )}>
+                <Sidebar
+                    isCollapsed={isCollapsed}
+                    onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+                />
             </div>
 
             {/* Mobile Sidebar Overlay */}
