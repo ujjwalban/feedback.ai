@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Navbar } from "@/components/dashboard/Navbar";
 import { UserProfile } from "@/types";
+import { cn } from "@/lib/utils";
 
 export default function DashboardLayout({
     children,
@@ -16,6 +17,7 @@ export default function DashboardLayout({
     const supabase = createClient();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         async function getProfile() {
@@ -52,10 +54,30 @@ export default function DashboardLayout({
 
     return (
         <div className="flex h-screen overflow-hidden bg-background">
-            <Sidebar />
+            {/* Desktop Sidebar */}
+            <div className="hidden md:flex md:w-64 md:flex-col">
+                <Sidebar />
+            </div>
+
+            {/* Mobile Sidebar Overlay */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
+            {/* Mobile Sidebar Content */}
+            <div className={cn(
+                "fixed inset-y-0 left-0 z-50 w-72 transform bg-background transition-transform duration-300 ease-in-out md:hidden",
+                isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+            )}>
+                <Sidebar onItemClick={() => setIsMobileMenuOpen(false)} />
+            </div>
+
             <div className="flex flex-1 flex-col overflow-hidden">
-                <Navbar profile={profile} />
-                <main className="flex-1 overflow-y-auto bg-muted/20 p-8">
+                <Navbar profile={profile} onMenuClick={() => setIsMobileMenuOpen(true)} />
+                <main className="flex-1 overflow-y-auto bg-muted/20 p-4 md:p-8">
                     <div className="mx-auto max-w-7xl">
                         {children}
                     </div>

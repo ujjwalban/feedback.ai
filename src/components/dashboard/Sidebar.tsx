@@ -24,13 +24,17 @@ const sidebarItems = [
     { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+    onItemClick?: () => void;
+}
+
+export function Sidebar({ onItemClick }: SidebarProps) {
     const pathname = usePathname();
 
     return (
-        <div className="flex h-full w-64 flex-col border-r bg-background">
+        <div className="flex h-full w-full flex-col border-r bg-background">
             <div className="flex h-16 items-center border-b px-6">
-                <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+                <Link href="/" onClick={onItemClick} className="flex items-center gap-2 font-bold text-xl">
                     <MessageSquareQuote className="h-6 w-6 text-primary" />
                     <span>Feedback.ai</span>
                 </Link>
@@ -41,6 +45,7 @@ export function Sidebar() {
                         <Link
                             key={item.name}
                             href={item.href}
+                            onClick={onItemClick}
                             className={cn(
                                 "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                                 pathname === item.href
@@ -65,7 +70,7 @@ export function Sidebar() {
                 <div className="rounded-xl bg-primary/5 p-4">
                     <p className="text-xs font-semibold text-primary uppercase tracking-wider">Current Plan</p>
                     <p className="mt-1 text-sm font-bold capitalize">Free Plan</p>
-                    <Link href="/dashboard/billing">
+                    <Link href="/dashboard/billing" onClick={onItemClick}>
                         <button className="mt-3 w-full rounded-lg bg-primary py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-opacity">
                             Upgrade to Pro
                         </button>
