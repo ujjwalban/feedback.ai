@@ -26,8 +26,11 @@ export default function OnboardingPage() {
 
         const { error } = await supabase
             .from("users")
-            .update({ username })
-            .eq("id", user.id)
+            .upsert({
+                id: user.id,
+                username: username,
+                email: user.email
+            });
 
         if (error) {
             setError(error.message)

@@ -49,6 +49,16 @@ export default function TestimonialSubmissionPage() {
 
             setUserProfile(userData)
             setLoading(false)
+
+            // Track link open
+            await supabase.from("analytics_events").insert({
+                user_id: userData.id,
+                event_type: "link_open",
+                metadata: { slug, request_id: requestData.id }
+            })
+
+            // Increment view count in testimonial_requests
+            await supabase.rpc('increment_view_count', { row_id: requestData.id })
         }
 
         getRequestData()
@@ -74,6 +84,16 @@ export default function TestimonialSubmissionPage() {
 
         if (!error) {
             setSubmitted(true)
+
+            // Track submission
+            await supabase.from("analytics_events").insert({
+                user_id: userProfile.id,
+                event_type: "submission",
+                metadata: { slug, request_id: request.id }
+            })
+
+            // Increment submission count in testimonial_requests
+            await supabase.rpc('increment_submission_count', { row_id: request.id })
         }
         setSubmitting(false)
     }
