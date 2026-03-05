@@ -12,16 +12,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Search, ExternalLink } from "lucide-react";
+import { Bell, Search, ExternalLink, Menu } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
 interface NavbarProps {
     profile: UserProfile | null;
+    onMenuClick?: () => void;
 }
 
-export function Navbar({ profile }: NavbarProps) {
+export function Navbar({ profile, onMenuClick }: NavbarProps) {
     const router = useRouter();
     const supabase = createClient();
 
@@ -31,8 +32,17 @@ export function Navbar({ profile }: NavbarProps) {
     };
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background/95 px-8 backdrop-blur">
+        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background/95 px-4 md:px-8 backdrop-blur">
             <div className="flex items-center gap-4">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden"
+                    onClick={onMenuClick}
+                >
+                    <Menu className="h-6 w-6" />
+                </Button>
+
                 <div className="relative hidden md:block">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <input

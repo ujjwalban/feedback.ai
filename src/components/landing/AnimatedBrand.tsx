@@ -76,7 +76,7 @@ export function AnimatedBrand({
             )}
 
             <motion.div
-                className={cn("font-black tracking-tighter flex", textSize)}
+                className={cn("font-black tracking-tighter flex flex-wrap justify-center", textSize)}
                 variants={container}
                 initial="hidden"
                 animate="visible"

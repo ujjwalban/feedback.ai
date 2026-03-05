@@ -50,8 +50,8 @@ export function LandingHero() {
                         transition={{ delay: 0.2, duration: 0.8 }}
                     >
                         <AnimatedBrand
-                            iconSize={64}
-                            textSize="text-6xl md:text-8xl lg:text-9xl"
+                            iconSize={48}
+                            textSize="text-3xl sm:text-5xl md:text-8xl lg:text-9xl"
                             className="justify-center mb-8"
                         />
                     </motion.div>
@@ -60,7 +60,7 @@ export function LandingHero() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4, duration: 0.8 }}
-                        className="text-4xl md:text-6xl font-black tracking-tighter max-w-4xl italic"
+                        className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tighter max-w-4xl italic"
                     >
                         Turn Your Happy Clients into Your <span className="text-primary underline decoration-wavy underline-offset-8">Best Sales Team.</span>
                     </motion.h1>
