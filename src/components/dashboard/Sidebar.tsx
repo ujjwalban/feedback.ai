@@ -10,9 +10,11 @@ import {
     Code2,
     Settings,
     CreditCard,
-    MessageSquareQuote
+    MessageSquareQuote,
+    X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
 
 const sidebarItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -33,11 +35,16 @@ export function Sidebar({ onItemClick }: SidebarProps) {
 
     return (
         <div className="flex h-full w-full flex-col border-r bg-background">
-            <div className="flex h-16 items-center border-b px-6">
+            <div className="flex h-16 items-center justify-between border-b px-6">
                 <Link href="/" onClick={onItemClick} className="flex items-center gap-2 font-bold text-xl">
                     <MessageSquareQuote className="h-6 w-6 text-primary" />
                     <span>Feedback.ai</span>
                 </Link>
+                {onItemClick && (
+                    <Button variant="ghost" size="icon" className="md:hidden" onClick={onItemClick}>
+                        <X className="h-5 w-5" />
+                    </Button>
+                )}
             </div>
             <div className="flex-1 overflow-y-auto py-4">
                 <nav className="space-y-1 px-3">
