@@ -8,6 +8,7 @@ import { MessageSquare, Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreateLinkModal } from "@/components/dashboard/CreateLinkModal";
+import { toast } from "sonner";
 
 export default function TestimonialsPage() {
     const supabase = createClient();
@@ -54,7 +55,7 @@ export default function TestimonialsPage() {
 
     const handleImprove = async (id: string) => {
         if (userPlan !== "pro") {
-            alert("AI Improvement is a Pro feature. Please upgrade!");
+            toast("FeedBack.ai", { description: "AI Improvement is a Pro feature. Please upgrade!" });
             return;
         }
 
@@ -62,7 +63,7 @@ export default function TestimonialsPage() {
         const testimonial = testimonials.find(t => t.id === id);
         if (!testimonial || !testimonial.message) return;
 
-        alert(`Improving testimonial from ${testimonial.client_name} with AI...`);
+        toast("FeedBack.ai", { description: `Improving testimonial from ${testimonial.client_name} with AI...` });
 
         // Mock update
         const improvedText = `${testimonial.message} (Optimized for impact by Feedback.ai)`;

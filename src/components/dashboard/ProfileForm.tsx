@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, Camera, Github, Twitter, Linkedin, Globe, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const profileSchema = z.object({
     username: z.string().min(3, "Username must be at least 3 characters").max(30, "Username is too long").regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores and hyphens"),
@@ -81,9 +82,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
         if (userError) {
             if (userError.code === '23505') {
-                alert("This username is already taken. Please choose another one.");
+                toast("FeedBack.ai", { description: "This username is already taken. Please choose another one." });
             } else {
-                alert("Error updating username: " + userError.message);
+                toast("FeedBack.ai", { description: "Error updating username: " + userError.message });
             }
             setSaving(false);
             return;
@@ -109,9 +110,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
             });
 
         if (error) {
-            alert("Error saving profile: " + error.message);
+            toast("FeedBack.ai", { description: "Error saving profile: " + error.message });
         } else {
-            alert("Profile updated successfully!");
+            toast("FeedBack.ai", { description: "Profile updated successfully!" });
         }
         setSaving(false);
     };
@@ -122,14 +123,14 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
         setSaving(true);
         const fileExt = file.name.split('.').pop();
-        const filePath = `${user.id}-${Math.random()}.${fileExt}`;
+        const filePath = `${user.id}/avatar-${Date.now()}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
             .from('profiles')
             .upload(filePath, file);
 
         if (uploadError) {
-            alert("Error uploading avatar: " + uploadError.message);
+            toast("FeedBack.ai", { description: "Error uploading avatar: " + uploadError.message });
         } else {
             const { data: { publicUrl } } = supabase.storage
                 .from('profiles')

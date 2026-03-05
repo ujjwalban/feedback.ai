@@ -157,6 +157,32 @@ CREATE POLICY "Testimonial requests are viewable by everyone" ON public.testimon
 DROP POLICY IF EXISTS "Users can manage their own requests" ON public.testimonial_requests;
 CREATE POLICY "Users can manage their own requests" ON public.testimonial_requests FOR ALL USING (auth.uid() = user_id);
 
+-- 9. Storage Setup (Profiles Bucket)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('profiles', 'profiles', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow public access to profile images
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'profiles');
+
+-- Allow authenticated users to upload their own avatar
+DROP POLICY IF EXISTS "Users can upload their own avatar" ON storage.objects;
+CREATE POLICY "Users can upload their own avatar" ON storage.objects 
+FOR INSERT WITH CHECK (
+  auth.role() = 'authenticated' AND 
+  bucket_id = 'profiles'
+);
+
+-- Allow users to update/delete their own avatar
+DROP POLICY IF EXISTS "Users can update their own avatar" ON storage.objects;
+CREATE POLICY "Users can update their own avatar" ON storage.objects 
+FOR UPDATE USING (auth.uid()::text = (storage.foldername(name))[1]);
+
+DROP POLICY IF EXISTS "Users can delete their own avatar" ON storage.objects;
+CREATE POLICY "Users can delete their own avatar" ON storage.objects 
+FOR DELETE USING (auth.uid()::text = (storage.foldername(name))[1]);
+
 -- Replace existing trigger
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created

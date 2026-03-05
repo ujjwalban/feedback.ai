@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Star, MessageSquareQuote, CheckCircle2, ShieldCheck, Loader2, Video, Mic } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -91,7 +92,7 @@ export default function TestimonialSubmissionPage({ params }: { params: Promise<
             await supabase.rpc('increment_request_submissions', { request_id: request.id });
             router.push("/thank-you");
         } else {
-            alert("Something went wrong. Please try again.");
+            toast("FeedBack.ai", { description: "Something went wrong. Please try again." });
             setSubmitting(false);
         }
     };

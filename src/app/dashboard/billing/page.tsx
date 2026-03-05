@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 export default function BillingPage() {
     const supabase = createClient();
@@ -72,7 +73,7 @@ export default function BillingPage() {
     ];
 
     const handleUpgrade = async () => {
-        alert("Redirecting to Stripe Checkout...");
+        toast("FeedBack.ai", { description: "Redirecting to Stripe Checkout..." });
         // In real app: call API route to create checkout session
         // const res = await fetch('/api/stripe/checkout', { method: 'POST' });
         // const { url } = await res.json();

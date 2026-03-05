@@ -30,6 +30,7 @@ import {
 import { createClient } from "@/utils/supabase/client"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 
 interface CreateLinkModalProps {
     plan?: string
@@ -64,7 +65,7 @@ export function CreateLinkModal({ plan = 'free' }: CreateLinkModalProps) {
             const link = `${window.location.origin}/submit/testimonial/${finalSlug}`
             setGeneratedLink(link)
         } else {
-            alert(error.message);
+            toast("FeedBack.ai", { description: error.message });
         }
         setLoading(false)
     }
