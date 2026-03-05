@@ -66,25 +66,26 @@ export default function DashboardLayout({
             </div>
 
             {/* Mobile Sidebar Overlay */}
-            {isMobileMenuOpen && (
-                <div
-                    className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                />
-            )}
+            <div
+                className={cn(
+                    "fixed inset-0 z-40 bg-background/80 backdrop-blur-sm transition-opacity duration-300 md:hidden",
+                    isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                )}
+                onClick={() => setIsMobileMenuOpen(false)}
+            />
 
             {/* Mobile Sidebar Content */}
             <div className={cn(
-                "fixed inset-y-0 left-0 z-50 w-72 transform bg-background transition-transform duration-300 ease-in-out md:hidden",
+                "fixed inset-y-0 left-0 z-50 w-72 transform bg-background shadow-2xl transition-transform duration-300 ease-in-out md:hidden",
                 isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 <Sidebar onItemClick={() => setIsMobileMenuOpen(false)} />
             </div>
 
-            <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="flex flex-1 flex-col overflow-hidden w-full">
                 <Navbar profile={profile} onMenuClick={() => setIsMobileMenuOpen(true)} />
-                <main className="flex-1 overflow-y-auto bg-muted/20 p-4 md:p-8">
-                    <div className="mx-auto max-w-7xl">
+                <main className="flex-1 overflow-y-auto bg-muted/20 p-4 sm:p-6 md:p-8">
+                    <div className="mx-auto max-w-7xl w-full">
                         {children}
                     </div>
                 </main>

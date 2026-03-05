@@ -38,11 +38,16 @@ export function Sidebar({ onItemClick }: SidebarProps) {
             <div className="flex h-16 items-center justify-between border-b px-6">
                 <Link href="/" onClick={onItemClick} className="flex items-center gap-2 font-bold text-xl">
                     <MessageSquareQuote className="h-6 w-6 text-primary" />
-                    <span>Feedback.ai</span>
+                    <span className="truncate">Feedback.ai</span>
                 </Link>
                 {onItemClick && (
-                    <Button variant="ghost" size="icon" className="md:hidden" onClick={onItemClick}>
-                        <X className="h-5 w-5" />
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full md:hidden bg-muted/50 hover:bg-muted"
+                        onClick={onItemClick}
+                    >
+                        <X className="h-4 w-4" />
                     </Button>
                 )}
             </div>
