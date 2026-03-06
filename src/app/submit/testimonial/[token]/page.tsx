@@ -14,12 +14,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { MediaRecorderModal } from "@/components/MediaRecorderModal";
 
 const formSchema = z.object({
     name: z.string().min(2, "Name is required"),
     company: z.string().optional(),
     rating: z.number().min(1).max(5),
-    message: z.string().min(10, "Message must be at least 10 characters"),
+    message: z.string().min(10, "Message must be at least 10 characters").optional(),
 });
 
 export default function TestimonialSubmissionPage({ params }: { params: Promise<{ token: string }> }) {
@@ -30,6 +31,10 @@ export default function TestimonialSubmissionPage({ params }: { params: Promise<
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [rating, setRating] = useState(5);
+    const [recorderOpen, setRecorderOpen] = useState(false);
+    const [recorderType, setRecorderType] = useState<'audio' | 'video'>('audio');
+    const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+    const [mediaType, setMediaType] = useState<'audio' | 'video' | null>(null);
 
     const { register, handleSubmit, setValue, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -68,31 +73,66 @@ export default function TestimonialSubmissionPage({ params }: { params: Promise<
         fetchRequest();
     }, [token, supabase]);
 
+    const handleMediaUpload = async (blob: Blob, type: 'audio' | 'video') => {
+        if (!request) throw new Error('No request found');
+
+        const fileName = `${request.user_id}/${Date.now()}-${type}`;
+        const bucketName = type === 'audio' ? 'audio-testimonials' : 'video-testimonials';
+
+        const { error, data } = await supabase.storage
+            .from(bucketName)
+            .upload(fileName, blob, {
+                cacheControl: '3600',
+                upsert: false,
+            });
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from(bucketName)
+            .getPublicUrl(data.path);
+
+        setMediaUrl(publicUrl);
+        setMediaType(type);
+        setRecorderOpen(false);
+
+        toast.success(`${type === 'audio' ? 'Audio' : 'Video'} recorded and uploaded successfully`);
+    };
+
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        // Validate that either message or media was provided
+        if (!mediaType && !values.message) {
+            toast("Feedback.ai", { description: "Please provide either a text message or record audio/video." });
+            return;
+        }
+
         setSubmitting(true);
 
         if (!request) return;
 
+        // If media was recorded, use it; otherwise use the text message
+        const testimonialData = {
+            user_id: request.user_id,
+            request_id: request.id,
+            client_name: values.name,
+            client_company: values.company,
+            rating: values.rating,
+            message: mediaType ? null : values.message,
+            type: mediaType || 'text',
+            ...(mediaType === 'audio' && { audio_url: mediaUrl }),
+            ...(mediaType === 'video' && { video_url: mediaUrl }),
+        };
+
         const { error } = await supabase
             .from("testimonials")
-            .insert([
-                {
-                    user_id: request.user_id,
-                    request_id: request.id,
-                    client_name: values.name,
-                    client_company: values.company,
-                    rating: values.rating,
-                    message: values.message,
-                    type: 'text'
-                }
-            ]);
+            .insert([testimonialData]);
 
         if (!error) {
             // Track submission
             await supabase.rpc('increment_request_submissions', { request_id: request.id });
             router.push("/thank-you");
         } else {
-            toast("FeedBack.ai", { description: "Something went wrong. Please try again." });
+            toast("Feedback.ai", { description: "Something went wrong. Please try again." });
             setSubmitting(false);
         }
     };
@@ -191,12 +231,32 @@ export default function TestimonialSubmissionPage({ params }: { params: Promise<
 
                             <div className="space-y-2">
                                 <Label htmlFor="message">Your Testimonial</Label>
-                                <Textarea
-                                    id="message"
-                                    placeholder="Tell us what you liked most about working with us..."
-                                    className="min-h-[120px] rounded-2xl resize-none p-4"
-                                    {...register("message")}
-                                />
+                                {mediaType ? (
+                                    <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/30 space-y-2">
+                                        <p className="text-sm text-green-600 font-semibold">
+                                            {mediaType === 'audio' ? '🎤 Audio' : '🎥 Video'} recorded and uploaded
+                                        </p>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                setMediaType(null);
+                                                setMediaUrl(null);
+                                            }}
+                                            className="text-destructive hover:bg-destructive/10"
+                                        >
+                                            Change to text
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Textarea
+                                        id="message"
+                                        placeholder="Tell us what you liked most about working with us..."
+                                        className="min-h-[120px] rounded-2xl resize-none p-4"
+                                        {...register("message")}
+                                    />
+                                )}
                                 {errors.message && <p className="text-xs text-destructive mt-1">{errors.message.message}</p>}
                             </div>
 
@@ -204,16 +264,31 @@ export default function TestimonialSubmissionPage({ params }: { params: Promise<
                                 <div className="pt-4 border-t space-y-4">
                                     <Label className="text-sm font-semibold opacity-70">Optional formats</Label>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <Button type="button" variant="outline" className="h-16 rounded-2xl gap-2 flex-col" disabled>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="h-16 rounded-2xl gap-2 flex-col"
+                                            onClick={() => {
+                                                setRecorderType('video');
+                                                setRecorderOpen(true);
+                                            }}
+                                        >
                                             <Video className="h-5 w-5" />
                                             <span className="text-xs">Record Video</span>
                                         </Button>
-                                        <Button type="button" variant="outline" className="h-16 rounded-2xl gap-2 flex-col" disabled>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="h-16 rounded-2xl gap-2 flex-col"
+                                            onClick={() => {
+                                                setRecorderType('audio');
+                                                setRecorderOpen(true);
+                                            }}
+                                        >
                                             <Mic className="h-5 w-5" />
                                             <span className="text-xs">Record Audio</span>
                                         </Button>
                                     </div>
-                                    <p className="text-[10px] text-center text-muted-foreground">Video/Audio support coming soon in this demo.</p>
                                 </div>
                             )}
 
@@ -239,6 +314,13 @@ export default function TestimonialSubmissionPage({ params }: { params: Promise<
                     <ShieldCheck className="h-4 w-4" />
                     <span>Secured by Feedback.ai</span>
                 </div>
+
+                <MediaRecorderModal
+                    open={recorderOpen}
+                    onClose={() => setRecorderOpen(false)}
+                    onUpload={handleMediaUpload}
+                    type={recorderType}
+                />
             </div>
         </div>
     );

@@ -12,7 +12,8 @@ import {
     Eye,
     MoreHorizontal,
     Building2,
-    Calendar
+    Calendar,
+    FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Testimonial } from "@/types";
@@ -27,6 +28,8 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { toPng } from "html-to-image";
 import { useRef, useState } from "react";
+import { exportTestimonialToPDF } from "@/lib/pdf-export";
+import { toast } from "sonner";
 
 interface TestimonialCardProps {
     testimonial: Testimonial;
@@ -47,8 +50,27 @@ export function TestimonialCard({ testimonial, onDelete, onImprove }: Testimonia
             link.download = `testimonial-${testimonial.client_name.toLowerCase().replace(/\s+/g, '-')}.png`;
             link.href = dataUrl;
             link.click();
+            toast.success('Image downloaded successfully');
         } catch (err) {
-            console.error('oops, something went wrong!', err);
+            console.error('Image download error:', err);
+            toast.error('Failed to download image');
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const downloadPDF = async () => {
+        if (!cardRef.current) return;
+        setIsDownloading(true);
+        try {
+            await exportTestimonialToPDF(
+                cardRef.current,
+                `testimonial-${testimonial.client_name.toLowerCase().replace(/\s+/g, '-')}.pdf`
+            );
+            toast.success('PDF downloaded successfully');
+        } catch (err) {
+            console.error('PDF download error:', err);
+            toast.error('Failed to download PDF');
         } finally {
             setIsDownloading(false);
         }
@@ -121,7 +143,7 @@ export function TestimonialCard({ testimonial, onDelete, onImprove }: Testimonia
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" aria-label="More options">
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
@@ -129,6 +151,10 @@ export function TestimonialCard({ testimonial, onDelete, onImprove }: Testimonia
                         <DropdownMenuItem onClick={downloadImage} disabled={isDownloading} className="gap-2 cursor-pointer">
                             <Download className="h-4 w-4" />
                             <span>Download Image</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={downloadPDF} disabled={isDownloading} className="gap-2 cursor-pointer">
+                            <FileText className="h-4 w-4" />
+                            <span>Download PDF</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
