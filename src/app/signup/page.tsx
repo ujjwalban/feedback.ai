@@ -13,6 +13,8 @@ import { MessageSquareQuote } from "lucide-react"
 export default function SignupPage() {
     const router = useRouter()
     const supabase = createClient()
+    const [name, setName] = useState("")
+    const [username, setUsername] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
@@ -23,20 +25,57 @@ export default function SignupPage() {
         setLoading(true)
         setError(null)
 
-        const { error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                emailRedirectTo: `${window.location.origin}/auth/callback`,
-            },
-        })
+        try {
+            // Sign up with Supabase Auth
+            const { data: { user }, error: signupError } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
+                    data: {
+                        name,
+                        username,
+                    },
+                },
+            })
 
-        if (error) {
-            setError(error.message)
-        } else {
+            if (signupError) {
+                setError(signupError.message)
+                setLoading(false)
+                return
+            }
+
+            // Update user profile with name and username
+            if (user) {
+                const { error: updateError } = await supabase
+                    .from('users')
+                    .update({
+                        username: username.toLowerCase(),
+                    })
+                    .eq('id', user.id)
+
+                if (updateError) {
+                    setError(updateError.message)
+                    setLoading(false)
+                    return
+                }
+
+                // Check if this email should get pro access (for testing)
+                const proAccessEmails = ['ujju.ban1@gmail.com']
+                if (proAccessEmails.includes(email.toLowerCase())) {
+                    await supabase
+                        .from('users')
+                        .update({ plan: 'pro' })
+                        .eq('id', user.id)
+                }
+            }
+
             router.push("/dashboard")
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred')
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }
 
     return (
@@ -49,7 +88,7 @@ export default function SignupPage() {
                     </Link>
                     <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
                     <CardDescription>
-                        Enter your email below to create your account
+                        Sign up in seconds to start collecting testimonials
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSignup}>
@@ -59,6 +98,31 @@ export default function SignupPage() {
                                 {error}
                             </div>
                         )}
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Full Name</Label>
+                            <Input
+                                id="name"
+                                type="text"
+                                placeholder="Jane Doe"
+                                required
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="h-11"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="username">Username</Label>
+                            <Input
+                                id="username"
+                                type="text"
+                                placeholder="janedoe"
+                                required
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                                className="h-11"
+                            />
+                            <p className="text-xs text-muted-foreground">Your public profile URL: /u/{username || 'yourname'}</p>
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
@@ -80,6 +144,7 @@ export default function SignupPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="h-11"
+                                placeholder="Minimum 6 characters"
                             />
                         </div>
                     </CardContent>

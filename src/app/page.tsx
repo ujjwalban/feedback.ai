@@ -265,10 +265,10 @@ export default function Home() {
             <AnimatedBrand iconSize={32} textSize="text-2xl md:text-3xl" />
           </Link>
           <div className="flex flex-wrap justify-center gap-6 md:gap-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            <Link href="#" className="hover:text-primary">Terms of Service</Link>
-            <Link href="#" className="hover:text-primary">Privacy Policy</Link>
-            <Link href="#" className="hover:text-primary">Status</Link>
-            <Link href="#" className="hover:text-primary">Twitter / X</Link>
+            <Link href="/terms-of-service" className="hover:text-primary">Terms of Service</Link>
+            <Link href="/privacy-policy" className="hover:text-primary">Privacy Policy</Link>
+            <a href="#" className="hover:text-primary">Status</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Twitter / X</a>
           </div>
           <p className="text-[10px] uppercase font-black tracking-[0.3em] text-muted-foreground/40">© {new Date().getFullYear()} Feedback.ai. All rights reserved.</p>
         </div>

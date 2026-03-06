@@ -48,7 +48,22 @@ export function LandingHero() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.8 }}
+                        className="relative"
                     >
+                        {/* Animated Ring Background */}
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary border-r-primary opacity-30"
+                            style={{ width: '320px', height: '320px', left: '-136px', top: '-136px' }}
+                        />
+                        <motion.div
+                            animate={{ rotate: -360 }}
+                            transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-0 rounded-full border-2 border-transparent border-b-primary border-l-primary opacity-20"
+                            style={{ width: '360px', height: '360px', left: '-156px', top: '-156px' }}
+                        />
+
                         <AnimatedBrand
                             iconSize={48}
                             textSize="text-3xl sm:text-5xl md:text-8xl lg:text-9xl"

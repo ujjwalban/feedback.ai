@@ -156,7 +156,13 @@ export default function PublicPageDashboard() {
                             </div>
                             <div className="grid grid-cols-4 gap-4">
                                 {['bg-blue-500', 'bg-purple-500', 'bg-indigo-500', 'bg-zinc-900'].map((color, i) => (
-                                    <button key={i} className={`h-10 rounded-full ${color} ${i === 2 ? 'ring-2 ring-offset-2 ring-primary' : ''} shadow-sm cursor-not-allowed`} title="Themes coming soon" />
+                                    <button
+                                        key={i}
+                                        className={`h-10 rounded-full ${color} ${i === 2 ? 'ring-2 ring-offset-2 ring-primary' : ''} shadow-sm cursor-not-allowed`}
+                                        title="Themes coming soon"
+                                        aria-label={['Blue theme', 'Purple theme', 'Indigo theme', 'Dark theme'][i]}
+                                        disabled
+                                    />
                                 ))}
                             </div>
                             <p className="text-[10px] text-center text-muted-foreground font-black uppercase tracking-widest">Custom themes for Pro users</p>

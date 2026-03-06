@@ -39,6 +39,7 @@ export function Navbar({ profile, onMenuClick }: NavbarProps) {
                     size="icon"
                     className="md:hidden"
                     onClick={onMenuClick}
+                    aria-label="Toggle navigation menu"
                 >
                     <Menu className="h-6 w-6" />
                 </Button>
@@ -61,9 +62,9 @@ export function Navbar({ profile, onMenuClick }: NavbarProps) {
                     </Button>
                 </Link>
 
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
                     <Bell className="h-5 w-5" />
-                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
+                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
                 </Button>
 
                 <div className="h-8 w-px bg-border mx-2" />
