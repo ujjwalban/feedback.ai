@@ -26,7 +26,7 @@ export default function TestimonialSubmissionPage({ params }: { params: Promise<
     const { token } = use(params);
     const supabase = createClient();
     const router = useRouter();
-    const [request, setRequest] = useState<TestimonialRequest | null>(null);
+    const [request, setRequest] = useState<TestimonialRequest & { users?: { username: string; plan: string } } | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [rating, setRating] = useState(5);
@@ -122,7 +122,7 @@ export default function TestimonialSubmissionPage({ params }: { params: Promise<
         );
     }
 
-    const user = (request as any).users;
+    const user = request.users;
 
     return (
         <div className="min-h-screen bg-muted/30 py-12 px-4 md:py-20">
@@ -169,12 +169,15 @@ export default function TestimonialSubmissionPage({ params }: { params: Promise<
                             </div>
 
                             <div className="space-y-3">
-                                <Label>Rating</Label>
-                                <div className="flex gap-2">
+                                <Label id="rating-label">Rating</Label>
+                                <div className="flex gap-2" role="radiogroup" aria-labelledby="rating-label">
                                     {[1, 2, 3, 4, 5].map((star) => (
                                         <button
                                             key={star}
                                             type="button"
+                                            role="radio"
+                                            aria-checked={star === rating}
+                                            aria-label={`${star} star${star !== 1 ? 's' : ''}`}
                                             className="transition-transform active:scale-90"
                                             onClick={() => {
                                                 setRating(star);

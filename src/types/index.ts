@@ -32,6 +32,8 @@ export interface TestimonialRequest {
     created_at: string
 }
 
+export type TestimonialStatus = 'pending' | 'approved' | 'rejected'
+
 export interface Testimonial {
     id: string
     user_id: string
@@ -43,16 +45,41 @@ export interface Testimonial {
     original_text?: string | null
     improved_text?: string | null
     type: 'text' | 'audio' | 'video'
+    status: TestimonialStatus
     audio_url: string | null
     video_url: string | null
     is_featured: boolean
     created_at: string
 }
 
+export interface AnalyticsEventMetadata {
+    request_id?: string
+    slug?: string
+    username?: string
+    [key: string]: string | undefined
+}
+
 export interface AnalyticsEvent {
     id: string
     user_id: string
     event_type: 'link_open' | 'submission' | 'page_view'
-    metadata: any
+    metadata: AnalyticsEventMetadata
     created_at: string
+}
+
+export interface Subscription {
+    id: string
+    user_id: string
+    status: string
+    price_id: string
+    quantity: number
+    cancel_at_period_end: boolean
+    created: string
+    current_period_start: string
+    current_period_end: string
+    ended_at: string | null
+    cancel_at: string | null
+    canceled_at: string | null
+    trial_start: string | null
+    trial_end: string | null
 }
