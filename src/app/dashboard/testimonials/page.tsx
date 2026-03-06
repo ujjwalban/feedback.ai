@@ -1,46 +1,74 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { TestimonialList } from "@/components/dashboard/TestimonialList";
-import { Testimonial } from "@/types";
-import { MessageSquare, Plus, Sparkles } from "lucide-react";
+import { Testimonial, PlanType } from "@/types";
+import { MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreateLinkModal } from "@/components/dashboard/CreateLinkModal";
 import { toast } from "sonner";
 
+const PAGE_SIZE = 12;
+
 export default function TestimonialsPage() {
     const supabase = createClient();
     const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
     const [loading, setLoading] = useState(true);
-    const [userPlan, setUserPlan] = useState<string>("free");
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [userPlan, setUserPlan] = useState<PlanType>("free");
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(0);
 
-    useEffect(() => {
-        async function fetchData() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+    const fetchTestimonials = useCallback(async (pageNum: number, append = false) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
+        if (pageNum === 0) {
             const { data: profile } = await supabase
                 .from("users")
                 .select("plan")
                 .eq("id", user.id)
                 .single();
-
-            setUserPlan(profile?.plan || "free");
-
-            const { data } = await supabase
-                .from("testimonials")
-                .select("*")
-                .eq("user_id", user.id)
-                .order("created_at", { ascending: false });
-
-            setTestimonials(data || []);
-            setLoading(false);
+            setUserPlan((profile?.plan as PlanType) || "free");
         }
 
-        fetchData();
+        const from = pageNum * PAGE_SIZE;
+        const to = from + PAGE_SIZE - 1;
+
+        const { data, error } = await supabase
+            .from("testimonials")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .range(from, to);
+
+        if (!error && data) {
+            if (append) {
+                setTestimonials(prev => [...prev, ...data]);
+            } else {
+                setTestimonials(data);
+            }
+            setHasMore(data.length === PAGE_SIZE);
+        }
     }, [supabase]);
+
+    useEffect(() => {
+        async function init() {
+            await fetchTestimonials(0);
+            setLoading(false);
+        }
+        init();
+    }, [fetchTestimonials]);
+
+    const loadMore = async () => {
+        const nextPage = page + 1;
+        setLoadingMore(true);
+        await fetchTestimonials(nextPage, true);
+        setPage(nextPage);
+        setLoadingMore(false);
+    };
 
     const handleDelete = async (id: string) => {
         const { error } = await supabase
@@ -59,13 +87,12 @@ export default function TestimonialsPage() {
             return;
         }
 
-        // Simulate AI Improvement (In real app, this would call an API route)
         const testimonial = testimonials.find(t => t.id === id);
         if (!testimonial || !testimonial.message) return;
 
         toast("FeedBack.ai", { description: `Improving testimonial from ${testimonial.client_name} with AI...` });
 
-        // Mock update
+        // Mock update — replace with real AI API call when integrated
         const improvedText = `${testimonial.message} (Optimized for impact by Feedback.ai)`;
 
         const { error } = await supabase
@@ -96,7 +123,7 @@ export default function TestimonialsPage() {
                 </div>
 
                 <div className="flex gap-4">
-                    <CreateLinkModal plan={userPlan as any} />
+                    <CreateLinkModal plan={userPlan} />
                 </div>
             </div>
 
@@ -107,11 +134,25 @@ export default function TestimonialsPage() {
                     ))}
                 </div>
             ) : (
-                <TestimonialList
-                    testimonials={testimonials}
-                    onDelete={handleDelete}
-                    onImprove={handleImprove}
-                />
+                <>
+                    <TestimonialList
+                        testimonials={testimonials}
+                        onDelete={handleDelete}
+                        onImprove={handleImprove}
+                    />
+                    {hasMore && testimonials.length > 0 && (
+                        <div className="flex justify-center pt-4">
+                            <Button
+                                variant="outline"
+                                className="rounded-2xl h-12 px-8 font-bold"
+                                onClick={loadMore}
+                                disabled={loadingMore}
+                            >
+                                {loadingMore ? "Loading..." : "Load More"}
+                            </Button>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

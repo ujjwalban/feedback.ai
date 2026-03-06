@@ -1,36 +1,48 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { createClient } from "@/utils/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { MessageSquareQuote } from "lucide-react"
+import { toast } from "sonner"
 
-export default function LoginPage() {
+export default function ResetPasswordPage() {
     const router = useRouter()
     const supabase = createClient()
-    const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault()
-        setLoading(true)
         setError(null)
 
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
+        if (password !== confirmPassword) {
+            setError("Passwords do not match")
+            return
+        }
+
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters")
+            return
+        }
+
+        setLoading(true)
+
+        const { error } = await supabase.auth.updateUser({
             password,
         })
 
         if (error) {
             setError(error.message)
         } else {
+            toast.success("Password updated successfully!")
             router.push("/dashboard")
         }
         setLoading(false)
@@ -44,12 +56,12 @@ export default function LoginPage() {
                         <MessageSquareQuote className="h-8 w-8" />
                         <span>Feedback.ai</span>
                     </Link>
-                    <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+                    <CardTitle className="text-2xl font-bold">Set new password</CardTitle>
                     <CardDescription>
-                        Enter your credentials to access your dashboard
+                        Enter your new password below
                     </CardDescription>
                 </CardHeader>
-                <form onSubmit={handleLogin}>
+                <form onSubmit={handleUpdatePassword}>
                     <CardContent className="space-y-4">
                         {error && (
                             <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-lg border border-destructive/20">
@@ -57,24 +69,7 @@ export default function LoginPage() {
                             </div>
                         )}
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="m@example.com"
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="h-11"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="password">Password</Label>
-                                <Link href="/forgot-password" className="text-xs text-primary hover:underline font-medium">
-                                    Forgot password?
-                                </Link>
-                            </div>
+                            <Label htmlFor="password">New Password</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -82,19 +77,26 @@ export default function LoginPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="h-11"
+                                minLength={6}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="confirm-password">Confirm Password</Label>
+                            <Input
+                                id="confirm-password"
+                                type="password"
+                                required
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="h-11"
+                                minLength={6}
                             />
                         </div>
                     </CardContent>
-                    <CardFooter className="flex flex-col space-y-4">
+                    <CardFooter>
                         <Button size="lg" className="w-full h-12 text-base font-semibold" disabled={loading}>
-                            {loading ? "Logging in..." : "Log In"}
+                            {loading ? "Updating..." : "Update Password"}
                         </Button>
-                        <div className="text-sm text-center text-muted-foreground">
-                            Don't have an account?{" "}
-                            <Link href="/signup" className="text-primary hover:underline font-medium">
-                                Sign up
-                            </Link>
-                        </div>
                     </CardFooter>
                 </form>
             </Card>

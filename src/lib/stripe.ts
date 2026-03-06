@@ -6,6 +6,4 @@ if (!process.env.STRIPE_SECRET_KEY) {
     }
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
-    apiVersion: '2026-02-25.clover' as any, // Match the version required by the ^20.4 library
-})
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock')

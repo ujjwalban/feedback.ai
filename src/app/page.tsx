@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -140,7 +141,7 @@ export default function Home() {
               </p>
               <div className="flex items-center gap-4 pt-4">
                 <div className="h-16 w-16 bg-muted rounded-2xl overflow-hidden border-2 border-primary shadow-xl">
-                  <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150&h=150" alt="Avatar" className="w-full h-full object-cover" />
+                  <Image src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150&h=150" alt="Alex Rivera avatar" width={64} height={64} className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <p className="font-black italic text-lg uppercase tracking-tight">Alex Rivera</p>

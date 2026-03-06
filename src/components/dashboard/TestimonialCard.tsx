@@ -27,6 +27,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { toPng } from "html-to-image";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { useRef, useState } from "react";
 import { exportTestimonialToPDF } from "@/lib/pdf-export";
 import { toast } from "sonner";
@@ -40,6 +48,7 @@ interface TestimonialCardProps {
 export function TestimonialCard({ testimonial, onDelete, onImprove }: TestimonialCardProps) {
     const cardRef = useRef<HTMLDivElement>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const downloadImage = async () => {
         if (!cardRef.current) return;
@@ -158,7 +167,7 @@ export function TestimonialCard({ testimonial, onDelete, onImprove }: Testimonia
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                            onClick={() => onDelete?.(testimonial.id)}
+                            onClick={() => setShowDeleteConfirm(true)}
                             className="gap-2 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
                         >
                             <Trash2 className="h-4 w-4" />
@@ -167,6 +176,33 @@ export function TestimonialCard({ testimonial, onDelete, onImprove }: Testimonia
                     </DropdownMenuContent>
                 </DropdownMenu>
             </CardFooter>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                <DialogContent className="sm:max-w-md rounded-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Delete Testimonial</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete the testimonial from <strong>{testimonial.client_name}</strong>? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2">
+                        <Button variant="outline" className="rounded-xl" onClick={() => setShowDeleteConfirm(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            className="rounded-xl"
+                            onClick={() => {
+                                onDelete?.(testimonial.id);
+                                setShowDeleteConfirm(false);
+                            }}
+                        >
+                            Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Card>
     );
 }
