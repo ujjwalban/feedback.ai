@@ -187,7 +187,7 @@ export default function OnboardingPage() {
                                         ? "bg-green-500 text-white"
                                         : "bg-muted text-muted-foreground"
                                 }`}
-                                whileScale={{ scale: s.number === step ? [1, 1.1, 1] : 1 }}
+                                animate={{ scale: s.number === step ? 1.1 : 1 }}
                             >
                                 {s.number < step ? (
                                     <CheckCircle2 className="h-5 w-5" />
