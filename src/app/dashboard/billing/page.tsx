@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { UserProfile } from "@/types";
 import {
@@ -51,7 +52,7 @@ export default function BillingPage() {
             ],
             current: user?.plan === 'free',
             buttonText: "Current Plan",
-            variant: "outline"
+            variant: "outline" as const
         },
         {
             name: "Pro Plan",
@@ -67,17 +68,46 @@ export default function BillingPage() {
             ],
             current: user?.plan === 'pro',
             buttonText: user?.plan === 'pro' ? "Current Plan" : "Upgrade to Pro",
-            variant: "default",
+            variant: "default" as const,
             highlight: true
         }
     ];
 
     const handleUpgrade = async () => {
         toast("FeedBack.ai", { description: "Redirecting to Stripe Checkout..." });
-        // In real app: call API route to create checkout session
-        // const res = await fetch('/api/stripe/checkout', { method: 'POST' });
-        // const { url } = await res.json();
-        // window.location.href = url;
+        try {
+            const res = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            });
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                toast.error("Failed to create checkout session");
+            }
+        } catch {
+            toast.error("Something went wrong. Please try again.");
+        }
+    };
+
+    const handleManageSubscription = async () => {
+        toast("FeedBack.ai", { description: "Opening subscription portal..." });
+        try {
+            const res = await fetch('/api/portal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                toast.error("Unable to open subscription portal");
+            }
+        } catch {
+            toast.error("Something went wrong. Please try again.");
+        }
     };
 
     if (loading) {
@@ -114,7 +144,7 @@ export default function BillingPage() {
                                 <p className="text-sm text-muted-foreground font-medium">Your next billing date is April 1, 2024</p>
                             </div>
                         </div>
-                        <Button variant="outline" className="rounded-xl font-bold h-11 px-8">Manage Subscription</Button>
+                        <Button variant="outline" className="rounded-xl font-bold h-11 px-8" onClick={handleManageSubscription}>Manage Subscription</Button>
                     </CardContent>
                 </Card>
             )}
@@ -164,7 +194,7 @@ export default function BillingPage() {
                                 className={`w-full h-14 rounded-2xl text-base font-black italic uppercase tracking-widest transition-all ${plan.current ? "bg-muted text-muted-foreground" : "shadow-xl hover:shadow-primary/20 hover:-translate-y-1"
                                     }`}
                                 disabled={plan.current}
-                                variant={plan.variant as any}
+                                variant={plan.variant}
                             >
                                 {plan.buttonText}
                                 {!plan.current && <ArrowRight className="ml-2 h-5 w-5" />}
@@ -185,7 +215,7 @@ export default function BillingPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-8">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" className="h-8 opacity-50 grayscale hover:grayscale-0 transition-all cursor-help" />
+                    <Image src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" width={80} height={32} className="h-8 w-auto opacity-50 grayscale hover:grayscale-0 transition-all cursor-help" />
                 </div>
             </div>
         </div>

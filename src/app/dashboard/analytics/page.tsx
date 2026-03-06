@@ -34,7 +34,7 @@ export default function AnalyticsPage() {
         conversionRate: 0,
         totalViews: 0
     });
-    const [chartData, setChartData] = useState<any[]>([]);
+    const [chartData, setChartData] = useState<{ date: string; fullDate: string; submissions: number; views: number }[]>([]);
 
     useEffect(() => {
         async function fetchAnalytics() {

@@ -145,12 +145,15 @@ export default function TestimonialSubmissionPage() {
                         </div>
 
                         <div className="space-y-4">
-                            <Label className="text-base font-semibold">Rating</Label>
-                            <div className="flex gap-2">
+                            <Label id="rating-label-legacy" className="text-base font-semibold">Rating</Label>
+                            <div className="flex gap-2" role="radiogroup" aria-labelledby="rating-label-legacy">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
                                         key={star}
                                         type="button"
+                                        role="radio"
+                                        aria-checked={star === formData.rating}
+                                        aria-label={`${star} star${star !== 1 ? 's' : ''}`}
                                         onClick={() => setFormData({ ...formData, rating: star })}
                                         className="transition-all hover:scale-110 active:scale-95"
                                     >
