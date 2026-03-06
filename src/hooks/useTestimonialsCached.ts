@@ -16,10 +16,10 @@ function getTestimonialsKey(options: UseTestimonialsCacheOptions) {
 }
 
 // Fetcher function
-async function fetchTestimonials(key: string) {
+async function fetchTestimonials(key: string): Promise<Testimonial[]> {
     const [, userIdPart, limit, offset] = key.match(/testimonials-(.+):(\d+):(\d+)/) || [];
 
-    if (!userIdPart) return null;
+    if (!userIdPart) return [];
 
     const supabase = createClient();
     let query = supabase
