@@ -67,7 +67,7 @@ export interface AnalyticsEvent {
     created_at: string
 }
 
-export interface Subscription {
+export interface SubscriptionRecord {
     id: string
     user_id: string
     status: string

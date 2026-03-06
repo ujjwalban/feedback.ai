@@ -1,7 +1,29 @@
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createAdminClient } from '@/utils/supabase/admin'
-import Stripe from 'stripe'
+import type { Stripe } from 'stripe'
+
+interface StripeSubscriptionTimestamps {
+    current_period_start: number | null
+    current_period_end: number | null
+    ended_at: number | null
+    cancel_at: number | null
+    canceled_at: number | null
+    trial_start: number | null
+    trial_end: number | null
+}
+
+function extractTimestamps(subscription: Stripe.Subscription): StripeSubscriptionTimestamps {
+    return {
+        current_period_start: (subscription as unknown as { current_period_start?: number }).current_period_start ?? null,
+        current_period_end: (subscription as unknown as { current_period_end?: number }).current_period_end ?? null,
+        ended_at: subscription.ended_at ?? null,
+        cancel_at: subscription.cancel_at ?? null,
+        canceled_at: subscription.canceled_at ?? null,
+        trial_start: subscription.trial_start ?? null,
+        trial_end: subscription.trial_end ?? null,
+    }
+}
 
 export async function POST(req: Request) {
     const body = await req.text()
@@ -42,25 +64,27 @@ export async function POST(req: Request) {
                 }
 
                 // Retrieve full subscription details
-                const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+                const stripeSubscription: Stripe.Subscription = await stripe.subscriptions.retrieve(subscriptionId)
+                const timestamps = extractTimestamps(stripeSubscription)
 
                 // Upsert subscription record
-                await supabaseAdmin.from('subscriptions').upsert({
-                    id: subscription.id,
+                const subscriptionData = {
+                    id: stripeSubscription.id,
                     user_id: userId,
-                    status: subscription.status,
-                    price_id: subscription.items.data[0]?.price.id ?? null,
-                    quantity: subscription.items.data[0]?.quantity ?? 1,
-                    cancel_at_period_end: subscription.cancel_at_period_end,
-                    created: new Date(subscription.created * 1000).toISOString(),
-                    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-                    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-                    ended_at: subscription.ended_at ? new Date(subscription.ended_at * 1000).toISOString() : null,
-                    cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
-                    canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
-                    trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
-                    trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-                })
+                    status: stripeSubscription.status,
+                    price_id: stripeSubscription.items?.data[0]?.price.id ?? null,
+                    quantity: stripeSubscription.items?.data[0]?.quantity ?? 1,
+                    cancel_at_period_end: stripeSubscription.cancel_at_period_end ?? false,
+                    created: new Date((stripeSubscription.created ?? 0) * 1000).toISOString(),
+                    current_period_start: timestamps.current_period_start ? new Date(timestamps.current_period_start * 1000).toISOString() : new Date().toISOString(),
+                    current_period_end: timestamps.current_period_end ? new Date(timestamps.current_period_end * 1000).toISOString() : new Date().toISOString(),
+                    ended_at: timestamps.ended_at ? new Date(timestamps.ended_at * 1000).toISOString() : null,
+                    cancel_at: timestamps.cancel_at ? new Date(timestamps.cancel_at * 1000).toISOString() : null,
+                    canceled_at: timestamps.canceled_at ? new Date(timestamps.canceled_at * 1000).toISOString() : null,
+                    trial_start: timestamps.trial_start ? new Date(timestamps.trial_start * 1000).toISOString() : null,
+                    trial_end: timestamps.trial_end ? new Date(timestamps.trial_end * 1000).toISOString() : null,
+                }
+                await supabaseAdmin.from('subscriptions').upsert(subscriptionData)
 
                 // Upgrade user plan to pro
                 await supabaseAdmin
@@ -73,6 +97,7 @@ export async function POST(req: Request) {
 
             case 'customer.subscription.updated': {
                 const subscription = event.data.object as Stripe.Subscription
+                const timestamps = extractTimestamps(subscription)
 
                 // Find user by subscription
                 const { data: existingSub } = await supabaseAdmin
@@ -87,16 +112,17 @@ export async function POST(req: Request) {
                 }
 
                 // Update subscription record
-                await supabaseAdmin.from('subscriptions').update({
+                const updateData = {
                     status: subscription.status,
-                    price_id: subscription.items.data[0]?.price.id ?? null,
-                    cancel_at_period_end: subscription.cancel_at_period_end,
-                    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-                    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-                    ended_at: subscription.ended_at ? new Date(subscription.ended_at * 1000).toISOString() : null,
-                    cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
-                    canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
-                }).eq('id', subscription.id)
+                    price_id: subscription.items?.data[0]?.price.id ?? null,
+                    cancel_at_period_end: subscription.cancel_at_period_end ?? false,
+                    current_period_start: timestamps.current_period_start ? new Date(timestamps.current_period_start * 1000).toISOString() : new Date().toISOString(),
+                    current_period_end: timestamps.current_period_end ? new Date(timestamps.current_period_end * 1000).toISOString() : new Date().toISOString(),
+                    ended_at: timestamps.ended_at ? new Date(timestamps.ended_at * 1000).toISOString() : null,
+                    cancel_at: timestamps.cancel_at ? new Date(timestamps.cancel_at * 1000).toISOString() : null,
+                    canceled_at: timestamps.canceled_at ? new Date(timestamps.canceled_at * 1000).toISOString() : null,
+                }
+                await supabaseAdmin.from('subscriptions').update(updateData).eq('id', subscription.id)
 
                 // Update plan based on subscription status
                 const isActive = ['active', 'trialing'].includes(subscription.status)
